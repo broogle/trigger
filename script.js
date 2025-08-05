@@ -1,6 +1,7 @@
 class TriggerLines {
     constructor() {
         this.isGenerating = false;
+        // For Vercel deployment - replace with your actual backend URL if deployed separately
         this.backendUrl = window.location.origin;
         
         this.initializeElements();
