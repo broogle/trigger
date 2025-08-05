@@ -1,0 +1,191 @@
+/* Reset and Base */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'JetBrains Mono', monospace;
+    background: #000000;
+    color: #ffffff;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow-x: hidden;
+}
+
+/* Container */
+.container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* Message Container */
+.message-container {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    max-width: 1000px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+/* Loading State */
+.loading-state {
+    text-align: center;
+    opacity: 1;
+    transition: opacity 0.5s ease;
+}
+
+.loading-text {
+    font-size: 1.2rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    margin-bottom: 2rem;
+    color: #ffffff;
+}
+
+.loading-bar {
+    width: 300px;
+    height: 2px;
+    background: rgba(255, 255, 255, 0.1);
+    margin: 0 auto;
+    position: relative;
+    overflow: hidden;
+}
+
+.loading-progress {
+    height: 100%;
+    background: #ffffff;
+    width: 0%;
+    animation: loading 2s ease-in-out infinite;
+}
+
+@keyframes loading {
+    0% { width: 0%; }
+    50% { width: 100%; }
+    100% { width: 0%; }
+}
+
+/* Message Content */
+.message-content {
+    width: 100%;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    animation: fadeIn 0.8s ease forwards;
+}
+
+.message-content.visible {
+    opacity: 1;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Message Text */
+.message-text {
+    font-size: 1.4rem;
+    line-height: 1.6;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    white-space: pre-line;
+    color: #ffffff;
+}
+
+/* Clickable Words */
+.word {
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    display: inline-block;
+    padding: 0 2px;
+}
+
+.word:hover {
+    color: #ff6b6b;
+    transform: translateY(-1px);
+}
+
+.word:active {
+    transform: translateY(0);
+    color: #ff5252;
+}
+
+/* Header */
+.header {
+    position: absolute;
+    top: 2rem;
+    right: 2rem;
+    z-index: 100;
+}
+
+.brand {
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    color: rgba(255, 255, 255, 0.6);
+    margin: 0;
+}
+
+
+
+
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .message-container {
+        padding: 1.5rem;
+    }
+    
+    .message-text {
+        font-size: 1.2rem;
+        line-height: 1.5;
+    }
+    
+    .header {
+        top: 1.5rem;
+        right: 1.5rem;
+    }
+    
+    .brand {
+        font-size: 0.9rem;
+    }
+    
+
+}
+
+@media (max-width: 480px) {
+    .message-text {
+        font-size: 1.1rem;
+    }
+    
+    .loading-text {
+        font-size: 1rem;
+    }
+    
+    .loading-bar {
+        width: 250px;
+    }
+    
+    .brand {
+        font-size: 0.8rem;
+    }
+}
+
+/* Word Click Animation */
+.word.clicked {
+    animation: wordClick 0.3s ease;
+}
+
+@keyframes wordClick {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); color: #ff6b6b; }
+    100% { transform: scale(1); }
+}
