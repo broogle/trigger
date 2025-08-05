@@ -15,7 +15,7 @@ app.use(express.static('.'));
 const CONFIG = {
     gemini: {
         apiKey: process.env.GEMINI_API_KEY,
-        endpoint: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent'
+        endpoint: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent'
     },
     openai: {
         apiKey: process.env.OPENAI_API_KEY,
