@@ -3,11 +3,197 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TriggerLines</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>TriggerLines - Motivational Message Generator</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* Reset and Base */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'JetBrains Mono', monospace;
+            background: #000000;
+            color: #ffffff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        /* Container */
+        .container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* Message Container */
+        .message-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            max-width: 1000px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        /* Loading State */
+        .loading-state {
+            text-align: center;
+            opacity: 1;
+            transition: opacity 0.5s ease;
+        }
+
+        .loading-text {
+            font-size: 1.2rem;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            margin-bottom: 2rem;
+            color: #ffffff;
+        }
+
+        .loading-bar {
+            width: 300px;
+            height: 2px;
+            background: rgba(255, 255, 255, 0.1);
+            margin: 0 auto;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .loading-progress {
+            height: 100%;
+            background: #ffffff;
+            width: 0%;
+            animation: loading 2s ease-in-out infinite;
+        }
+
+        @keyframes loading {
+            0% { width: 0%; }
+            50% { width: 100%; }
+            100% { width: 0%; }
+        }
+
+        /* Message Content */
+        .message-content {
+            width: 100%;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            animation: fadeIn 0.8s ease forwards;
+        }
+
+        .message-content.visible {
+            opacity: 1;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Message Text */
+        .message-text {
+            font-size: 1.4rem;
+            line-height: 1.6;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+            white-space: pre-line;
+            color: #ffffff;
+        }
+
+        /* Clickable Words */
+        .word {
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+            display: inline-block;
+            padding: 0 2px;
+        }
+
+        .word:hover {
+            color: #ff6b6b;
+            transform: translateY(-1px);
+        }
+
+        .word:active {
+            transform: translateY(0);
+            color: #ff5252;
+        }
+
+        /* Header */
+        .header {
+            position: absolute;
+            top: 2rem;
+            right: 2rem;
+            z-index: 100;
+        }
+
+        .brand {
+            font-size: 1rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            color: rgba(255, 255, 255, 0.6);
+            margin: 0;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .message-container {
+                padding: 1.5rem;
+            }
+            
+            .message-text {
+                font-size: 1.2rem;
+                line-height: 1.5;
+            }
+            
+            .header {
+                top: 1.5rem;
+                right: 1.5rem;
+            }
+            
+            .brand {
+                font-size: 0.9rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .message-text {
+                font-size: 1.1rem;
+            }
+            
+            .loading-text {
+                font-size: 1rem;
+            }
+            
+            .loading-bar {
+                width: 250px;
+            }
+            
+            .brand {
+                font-size: 0.8rem;
+            }
+        }
+
+        /* Word Click Animation */
+        .word.clicked {
+            animation: wordClick 0.3s ease;
+        }
+
+        @keyframes wordClick {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); color: #ff6b6b; }
+            100% { transform: scale(1); }
+        }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -27,10 +213,177 @@
                 <!-- Motivational message will be injected here -->
             </div>
         </div>
-        
-
     </div>
 
-    <script src="script.js"></script>
+    <script>
+        class TriggerLines {
+            constructor() {
+                this.isGenerating = false;
+                // For Vercel deployment - replace with your actual backend URL if deployed separately
+                this.backendUrl = window.location.origin;
+                
+                this.initializeElements();
+                this.bindEvents();
+                this.checkBackendHealth();
+            }
+
+            initializeElements() {
+                this.loadingState = document.getElementById('loadingState');
+                this.messageContent = document.getElementById('messageContent');
+                this.messageContainer = document.getElementById('messageContainer');
+            }
+
+            bindEvents() {
+                // No frontend settings needed - all handled by backend
+            }
+
+            async checkBackendHealth() {
+                try {
+                    const response = await fetch(`${this.backendUrl}/api/health`);
+                    if (response.ok) {
+                        const health = await response.json();
+                        console.log('🔥 Backend connected:', health);
+                        this.generateInitialMessage();
+                    } else {
+                        throw new Error('Backend health check failed');
+                    }
+                } catch (error) {
+                    console.error('❌ Backend connection failed:', error);
+                    this.displayError('Backend server not available. Please start the server with "npm start" and refresh.');
+                }
+            }
+
+            async generateInitialMessage() {
+                const initialWords = [
+                    'POWER', 'STRENGTH', 'VICTORY', 'COURAGE', 'FIRE', 'LIGHTNING', 
+                    'THUNDER', 'STORM', 'UNSTOPPABLE', 'FEARLESS', 'WARRIOR', 'CHAMPION'
+                ];
+                const randomWord = initialWords[Math.floor(Math.random() * initialWords.length)];
+                await this.generateMessage(randomWord);
+            }
+
+            async generateMessage(triggerWord) {
+                if (this.isGenerating) return;
+                
+                this.isGenerating = true;
+                this.showLoading();
+
+                try {
+                    const message = await this.callLLM(triggerWord);
+                    this.displayMessage(message, triggerWord);
+                } catch (error) {
+                    console.error('Error generating message:', error);
+                    this.displayError(error.message);
+                } finally {
+                    this.isGenerating = false;
+                }
+            }
+
+            showLoading() {
+                this.loadingState.style.display = 'block';
+                this.messageContent.style.display = 'none';
+                this.messageContent.classList.remove('visible');
+            }
+
+            displayMessage(message, triggerWord) {
+                // Hide loading
+                this.loadingState.style.display = 'none';
+                
+                // Process and display message
+                const processedMessage = this.processMessage(message);
+                this.messageContent.innerHTML = `<div class="message-text">${processedMessage}</div>`;
+                this.messageContent.style.display = 'block';
+                
+                // Fade in
+                setTimeout(() => {
+                    this.messageContent.classList.add('visible');
+                }, 100);
+
+                // Add click handlers to words
+                this.addWordClickHandlers();
+            }
+
+            processMessage(message) {
+                // Clean and format the message
+                let processed = message.toUpperCase().trim();
+                
+                // Split into words and wrap each in a clickable span
+                const words = processed.split(/(\s+)/);
+                return words.map(word => {
+                    if (word.trim() && !word.match(/^\s+$/)) {
+                        // Remove punctuation for the trigger word, but keep it for display
+                        const cleanWord = word.replace(/[^\w]/g, '');
+                        return `<span class="word" data-word="${cleanWord}">${word}</span>`;
+                    }
+                    return word;
+                }).join('');
+            }
+
+            addWordClickHandlers() {
+                const wordElements = this.messageContent.querySelectorAll('.word');
+                wordElements.forEach(element => {
+                    element.addEventListener('click', (e) => {
+                        const word = e.target.dataset.word;
+                        if (word && word.length > 2) { // Only trigger for words longer than 2 characters
+                            e.target.classList.add('clicked');
+                            setTimeout(() => e.target.classList.remove('clicked'), 300);
+                            this.generateMessage(word);
+                        }
+                    });
+                });
+            }
+
+            displayError(errorMessage) {
+                this.loadingState.style.display = 'none';
+                this.messageContent.innerHTML = `
+                    <div class="message-text" style="color: #ff6b6b; text-align: center;">
+                        <p>UNABLE TO GENERATE MESSAGE</p>
+                        <br>
+                        <p style="font-size: 0.9rem; opacity: 0.8;">${errorMessage}</p>
+                        <br>
+                        <p style="font-size: 0.8rem; opacity: 0.6;">Check your API configuration in settings</p>
+                    </div>
+                `;
+                this.messageContent.style.display = 'block';
+                this.messageContent.classList.add('visible');
+            }
+
+            async callLLM(triggerWord) {
+                const response = await fetch(`${this.backendUrl}/api/generate`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        triggerWord: triggerWord
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || `Server error: ${response.status}`);
+                }
+
+                const data = await response.json();
+                return data.message;
+            }
+        }
+
+        // Initialize the application when DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            window.triggerLinesInstance = new TriggerLines();
+        });
+
+        // Handle keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            // Press 'R' to reload/generate new message
+            if (e.key.toLowerCase() === 'r' && !e.ctrlKey && !e.metaKey) {
+                const triggerLines = window.triggerLinesInstance;
+                if (triggerLines && !triggerLines.isGenerating) {
+                    triggerLines.generateInitialMessage();
+                }
+            }
+        });
+    </script>
 </body>
 </html>
