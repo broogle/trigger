@@ -191,6 +191,8 @@ app.post('/api/generate', async (req, res) => {
     }
 });
 
+// (Removed) Instagram publish endpoint
+
 // Health check
 app.get('/api/health', (req, res) => {
     res.json({ 

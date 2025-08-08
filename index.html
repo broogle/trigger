@@ -234,6 +234,37 @@
             color: rgba(255, 255, 255, 0.8);
             transform: translateY(-1px);
         }
+
+        /* Action Buttons */
+        .save-image-btn {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            z-index: 110;
+            background: #ffffff;
+            color: #000000;
+            border: none;
+            padding: 0.8rem 1rem;
+            border-radius: 8px;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            font-size: 0.85rem;
+            letter-spacing: 0.06em;
+            cursor: pointer;
+            transition: transform 0.15s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+        }
+
+        .save-image-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 24px rgba(255, 255, 255, 0.12);
+        }
+
+        .save-image-btn:active {
+            transform: translateY(0);
+            opacity: 0.9;
+        }
+
+        /* (Removed) Instagram button styles */
     </style>
 </head>
 <body>
@@ -260,6 +291,8 @@
                 @cloud_rohit
             </a>
         </div>
+
+        <button id="saveImageBtn" class="save-image-btn" title="Save current message as image (9:16)">SAVE AS IMAGE</button>
     </div>
 
     <script>
@@ -278,10 +311,15 @@
                 this.loadingState = document.getElementById('loadingState');
                 this.messageContent = document.getElementById('messageContent');
                 this.messageContainer = document.getElementById('messageContainer');
+                this.saveImageBtn = document.getElementById('saveImageBtn');
             }
 
             bindEvents() {
-                // No frontend settings needed - all handled by backend
+                if (this.saveImageBtn) {
+                    this.saveImageBtn.addEventListener('click', () => {
+                        this.saveCurrentMessageAsImage();
+                    });
+                }
             }
 
             async checkBackendHealth() {
@@ -426,6 +464,163 @@
                 const data = await response.json();
                 return data.message;
             }
+
+            async saveCurrentMessageAsImage() {
+                try {
+                    const messageTextElement = this.messageContent.querySelector('.message-text');
+                    if (!messageTextElement) {
+                        throw new Error('No message to save yet');
+                    }
+
+                    const text = messageTextElement.textContent || '';
+                    const dataUrls = await this.renderMessageToImages(text);
+
+                    const timestamp = new Date().toISOString().replace(/[-:T]/g, '').slice(0, 14);
+                    dataUrls.forEach((url, idx) => {
+                        const link = document.createElement('a');
+                        const suffix = dataUrls.length > 1 ? `_p${String(idx + 1).padStart(2, '0')}` : '';
+                        link.href = url;
+                        link.download = `triggerlines_${timestamp}${suffix}.png`;
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                    });
+                } catch (error) {
+                    console.error('Failed to save image:', error);
+                    this.displayError('Failed to save image. Try generating a message first.');
+                }
+            }
+
+            async renderMessageToImages(text) {
+                // 9:16 high resolution (portrait). Default to 2160x3840 (4K portrait)
+                const width = 2160;
+                const height = 3840;
+
+                // Ensure fonts are loaded
+                if (document.fonts && document.fonts.ready) {
+                    try { await document.fonts.ready; } catch (_) {}
+                }
+
+                // Layout constants
+                const marginX = Math.round(width * 0.08); // 8% left/right
+                const marginTop = Math.round(height * 0.12); // top
+                const marginBottom = Math.round(height * 0.12); // bottom
+                const maxContentWidth = width - marginX * 2;
+                const availableHeight = height - marginTop - marginBottom;
+
+                const createCtx = () => {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = width;
+                    canvas.height = height;
+                    return canvas.getContext('2d');
+                };
+
+                const wrapLines = (ctx, fontSize) => {
+                    const upper = (text || '').toUpperCase().trim();
+                    const paragraphs = upper
+                        .split(/\n\s*\n/)
+                        .map(p => p.trim())
+                        .filter(Boolean);
+
+                    ctx.font = `600 ${fontSize}px "JetBrains Mono", monospace`;
+                    const lineHeight = Math.round(fontSize * 1.35);
+                    const lines = [];
+
+                    const addWrapped = (rawLine) => {
+                        const words = rawLine.split(/\s+/);
+                        let line = '';
+                        for (let i = 0; i < words.length; i++) {
+                            const testLine = line ? line + ' ' + words[i] : words[i];
+                            if (ctx.measureText(testLine).width > maxContentWidth && line) {
+                                lines.push(line);
+                                line = words[i];
+                            } else {
+                                line = testLine;
+                            }
+                        }
+                        if (line) lines.push(line);
+                    };
+
+                    const sourceParas = paragraphs.length ? paragraphs : [upper];
+                    sourceParas.forEach((para, idx) => {
+                        const hardLines = para.split(/\n/);
+                        hardLines.forEach(l => {
+                            if (!l.trim()) {
+                                lines.push('');
+                            } else {
+                                addWrapped(l);
+                            }
+                        });
+                        if (idx < sourceParas.length - 1) lines.push(''); // paragraph gap
+                    });
+
+                    return { lines, lineHeight };
+                };
+
+                // Find a font size that fits; if none, paginate
+                const measureCtx = createCtx();
+                measureCtx.fillStyle = '#ffffff';
+                measureCtx.textBaseline = 'alphabetic';
+
+                let fontSize = 84; // start large
+                const minFontSize = 40;
+                let layout = wrapLines(measureCtx, fontSize);
+                const totalHeight = () => layout.lines.length * layout.lineHeight;
+
+                while (fontSize > minFontSize && totalHeight() > availableHeight) {
+                    fontSize = Math.floor(fontSize * 0.92);
+                    layout = wrapLines(measureCtx, fontSize);
+                }
+
+                // Build pages
+                let pages = [];
+                if (totalHeight() <= availableHeight) {
+                    pages = [layout.lines];
+                } else {
+                    const linesPerPage = Math.max(1, Math.floor(availableHeight / layout.lineHeight));
+                    for (let i = 0; i < layout.lines.length; i += linesPerPage) {
+                        pages.push(layout.lines.slice(i, i + linesPerPage));
+                    }
+                }
+
+                // Render pages with only top-right branding
+                const dataUrls = pages.map((pageLines) => {
+                    const ctx = createCtx();
+
+                    // Background
+                    ctx.fillStyle = '#000000';
+                    ctx.fillRect(0, 0, width, height);
+
+                    // Branding (top-right)
+                    ctx.fillStyle = 'rgba(255,255,255,0.6)';
+                    ctx.font = '700 64px "JetBrains Mono", monospace';
+                    ctx.textAlign = 'right';
+                    ctx.textBaseline = 'top';
+                    ctx.fillText('TRIGGERLINES', width - marginX, marginTop - 64);
+
+                    // Message text
+                    ctx.textAlign = 'left';
+                    ctx.textBaseline = 'alphabetic';
+                    ctx.fillStyle = '#ffffff';
+                    ctx.font = `600 ${fontSize}px "JetBrains Mono", monospace`;
+
+                    let y = marginTop + 40;
+                    for (const line of pageLines) {
+                        if (!line) {
+                            y += layout.lineHeight;
+                        } else {
+                            ctx.fillText(line, marginX, y);
+                            y += layout.lineHeight;
+                        }
+                    }
+
+                    return ctx.canvas.toDataURL('image/png');
+                });
+
+                return dataUrls;
+            }
+
+            // (Removed) Instagram posting logic
         }
 
         // Initialize the application when DOM is loaded
@@ -442,6 +637,14 @@
                     triggerLines.generateInitialMessage();
                 }
             }
+            // Press 'S' to save as image
+            if (e.key.toLowerCase() === 's' && !e.ctrlKey && !e.metaKey) {
+                const triggerLines = window.triggerLinesInstance;
+                if (triggerLines) {
+                    triggerLines.saveCurrentMessageAsImage();
+                }
+            }
+            // (Removed) P to post to Instagram
         });
     </script>
     <script>
