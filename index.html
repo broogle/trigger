@@ -300,6 +300,38 @@
         }
 
         /* (Removed) Instagram button styles */
+
+        /* Final mobile overrides (placed after base rules to win cascade) */
+        @media (max-width: 768px) {
+            .footer {
+                position: static !important;
+                transform: none !important;
+                left: auto !important;
+                bottom: auto !important;
+                text-align: center;
+                margin-top: 1rem;
+            }
+            .save-image-btn {
+                position: static !important;
+                display: block;
+                margin: 0.75rem auto 1rem;
+            }
+        }
+        @media (max-width: 480px) {
+            .footer {
+                position: static !important;
+                transform: none !important;
+                left: auto !important;
+                bottom: auto !important;
+                text-align: center;
+                margin-top: 1rem;
+            }
+            .save-image-btn {
+                position: static !important;
+                display: block;
+                margin: 0.75rem auto 1rem;
+            }
+        }
     </style>
 </head>
 <body>
