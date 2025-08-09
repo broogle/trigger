@@ -159,12 +159,11 @@
                 font-size: 0.9rem;
             }
 
-            /* Place save button bottom-left on small tablets to avoid footer */
+            /* On small tablets, put the button in normal flow below the footer */
             .save-image-btn {
-                bottom: 4.25rem;
-                left: 1rem;
-                right: auto;
-                top: auto;
+                position: static;
+                display: block;
+                margin: 0.75rem auto 1rem;
             }
         }
 
@@ -197,12 +196,11 @@
                 font-size: 0.75rem;
             }
 
-            /* Place save button bottom-left on phones */
+            /* On phones, keep button in normal flow and centered */
             .save-image-btn {
-                bottom: 4.75rem;
-                left: 1rem;
-                right: auto;
-                top: auto;
+                position: static;
+                display: block;
+                margin: 0.75rem auto 1rem;
             }
         }
 
