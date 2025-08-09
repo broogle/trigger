@@ -159,10 +159,12 @@
                 font-size: 0.9rem;
             }
 
-            /* Lift the save button above the footer on small tablets */
+            /* Move save button to top-left on small tablets to avoid footer overlap */
             .save-image-btn {
-                bottom: 4rem;
-                right: 1.5rem;
+                top: 1rem;
+                left: 1rem;
+                right: auto;
+                bottom: auto;
             }
         }
 
@@ -195,10 +197,12 @@
                 font-size: 0.75rem;
             }
 
-            /* Lift and tuck the save button to avoid overlap with footer on phones */
+            /* Keep save button at top-left on phones */
             .save-image-btn {
-                bottom: 4.5rem;
-                right: 1rem;
+                top: 1rem;
+                left: 1rem;
+                right: auto;
+                bottom: auto;
             }
         }
 
