@@ -159,6 +159,16 @@
                 font-size: 0.9rem;
             }
 
+            /* Footer becomes part of normal flow */
+            .footer {
+                position: static;
+                transform: none;
+                left: auto;
+                bottom: auto;
+                text-align: center;
+                margin-top: 1rem;
+            }
+
             /* On small tablets, put the button in normal flow below the footer */
             .save-image-btn {
                 position: static;
@@ -184,8 +194,14 @@
                 font-size: 0.8rem;
             }
             
+            /* Footer flows with content on phones */
             .footer {
-                bottom: 1rem;
+                position: static;
+                transform: none;
+                left: auto;
+                bottom: auto;
+                text-align: center;
+                margin-top: 1rem;
             }
             
             .message-container {
